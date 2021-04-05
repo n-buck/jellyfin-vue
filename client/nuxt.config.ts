@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { NuxtRouteConfig } from '@nuxt/types/config/router';
 import type { NuxtConfig } from '@nuxt/types';
+import simpleIcons from 'simple-icons';
 
 const config: NuxtConfig = {
   /*
@@ -341,6 +342,12 @@ const config: NuxtConfig = {
       options: {
         customProperties: true
       }
+    },
+    icons: {
+      iconfont: 'mdi',
+      values: {
+        jellyfin: simpleIcons.get('jellyfin').path
+      }
     }
   },
   loadingIndicator: {
@@ -362,9 +369,6 @@ const config: NuxtConfig = {
       }
     },
     optimizeCSS: true,
-    extractCSS: {
-      ignoreOrder: true
-    },
     babel: {
       // envName: server, client, modern
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
