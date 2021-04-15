@@ -163,6 +163,7 @@ const config: NuxtConfig = {
     plugins: [
       '~/plugins/userLibraryPlugin.ts',
       '~/plugins/itemsPlugin.ts',
+      '~/plugins/tvShowsPlugin.ts',
       '~/plugins/playbackPlugin.ts'
     ]
   },
