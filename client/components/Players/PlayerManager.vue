@@ -81,6 +81,7 @@
                         "
                       >
                         <div
+                          v-if="$vuetify.breakpoint.mdAndUp"
                           class="
                             d-flex
                             flex-column
@@ -91,13 +92,21 @@
                           "
                         >
                           <template v-if="getCurrentItem.Type === 'Episode'">
-                            <span class="mt-1 text-subtitle-1">
+                            <span class="mt-1 text-subtitle-1 text-truncate">
                               {{ getCurrentItem.Name }}
                             </span>
-                            <span class="text-subtitle-2 text--secondary">
+                            <span
+                              class="
+                                text-subtitle-2 text--secondary text-truncate
+                              "
+                            >
                               {{ getCurrentItem.SeriesName }}
                             </span>
-                            <span class="text-subtitle-2 text--secondary">
+                            <span
+                              class="
+                                text-subtitle-2 text--secondary text-truncate
+                              "
+                            >
                               {{
                                 $t('seasonEpisode', {
                                   seasonNumber:
@@ -116,7 +125,7 @@
                             d-flex
                             player-controls
                             align-center
-                            justify-center
+                            justify-start justify-md-center
                           "
                         >
                           <v-btn icon class="mx-1" @click="setPreviousTrack">
@@ -139,15 +148,25 @@
                             <v-icon icon> mdi-skip-next</v-icon>
                           </v-btn>
                         </div>
-                        <div class="d-flex aligh-center">
-                          <volume-slider class="mr-2" />
+                        <div class="d-flex aligh-center ml-auto ml-md-0">
+                          <volume-slider
+                            v-if="$vuetify.breakpoint.smAndUp"
+                            class="mr-2"
+                          />
                           <queue-button
-                            nudge-top="60"
+                            :nudge-top="$vuetify.breakpoint.mdAndUp ? 60 : 30"
                             :close-on-click="true"
                             @input="onQueueChangeHandler($event)"
                           />
-                          <subtitle-selection-button nudge-top="60" />
-                          <playback-settings-button nudge-top="60" />
+                          <subtitle-selection-button
+                            v-if="$vuetify.breakpoint.smAndUp"
+                            :nudge-top="$vuetify.breakpoint.mdAndUp ? 60 : 30"
+                            @input="onQueueChangeHandler($event)"
+                          />
+                          <playback-settings-button
+                            :nudge-top="$vuetify.breakpoint.mdAndUp ? 60 : 30"
+                            @input="onQueueChangeHandler($event)"
+                          />
                           <v-btn
                             v-if="$features.pictureInPicture"
                             class="align-self-center active-button"
@@ -197,7 +216,7 @@ export default Vue.extend({
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       unsubscribe(): void {},
       fullScreenVideo: false,
-      queue: false
+      keepOpen: false
     };
   },
   computed: {
@@ -266,11 +285,22 @@ export default Vue.extend({
       'skipBackward',
       'changeCurrentTime'
     ]),
+    getOsdTimeoutDuration(): number {
+      // If we're on mobile, the OSD timer must be longer, to account for the lack of pointer movement
+      if (window.matchMedia('(pointer:fine)').matches) {
+        return 3000;
+      } else {
+        return 10000;
+      }
+    },
     setFullscreenTimeout(): void {
       this.fullScreenOverlayTimer = window.setTimeout(() => {
         this.showFullScreenOverlay = false;
+
+        document.body.classList.add('hide-pointer');
+
         this.fullScreenOverlayTimer = null;
-      }, 3000);
+      }, this.getOsdTimeoutDuration());
     },
     handleMouseMove(): void {
       if (
@@ -284,7 +314,9 @@ export default Vue.extend({
 
         this.showFullScreenOverlay = true;
 
-        if (!this.queue) {
+        document.body.classList.remove('hide-pointer');
+
+        if (!this.keepOpen) {
           this.setFullscreenTimeout();
         }
       }
@@ -504,7 +536,7 @@ export default Vue.extend({
       });
     },
     onQueueChangeHandler(value: boolean): void {
-      this.queue = value;
+      this.keepOpen = value;
 
       if (value && this.fullScreenOverlayTimer) {
         clearTimeout(this.fullScreenOverlayTimer);
@@ -597,7 +629,7 @@ export default Vue.extend({
 }
 
 .osd-top {
-  padding-bottom: 10em;
+  padding-bottom: 5em;
   background: linear-gradient(
     to bottom,
     hsla(0, 0%, 0%, 0.75) 0%,
@@ -620,7 +652,7 @@ export default Vue.extend({
 }
 
 .osd-bottom {
-  padding-top: 10em;
+  padding-top: 6em;
   background: linear-gradient(
     to top,
     hsla(0, 0%, 0%, 0.75) 0%,
@@ -643,6 +675,7 @@ export default Vue.extend({
 }
 
 .video-title {
+  max-width: 40vw;
   height: 6em;
 }
 
