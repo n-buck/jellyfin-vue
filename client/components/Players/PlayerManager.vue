@@ -179,7 +179,6 @@
                             v-if="$features.fullScreen"
                             class="align-self-center active-button"
                             icon
-                            disabled
                             @click="toggleFullScreen"
                           >
                             <v-icon>mdi-fullscreen</v-icon>
@@ -311,7 +310,7 @@ export default Vue.extend({
         !this.isMinimized
       ) {
         if (this.fullScreenOverlayTimer) {
-          clearTimeout(this.fullScreenOverlayTimer);
+          window.clearTimeout(this.fullScreenOverlayTimer);
         }
 
         this.showFullScreenOverlay = true;
@@ -331,6 +330,10 @@ export default Vue.extend({
       }`;
     },
     stopPlayback(): void {
+      if (this.fullScreenOverlayTimer) {
+        window.clearTimeout(this.fullScreenOverlayTimer);
+      }
+
       this.setLastItemIndex();
       this.resetCurrentItemIndex();
       this.setNextTrack();
