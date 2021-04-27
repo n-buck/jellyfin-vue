@@ -345,15 +345,10 @@ export const actions: ActionTree<PlaybackManagerState, RootState> = {
       if (startShuffled) {
         translatedItems = await this.$playback.translateItemsForPlayback(
           item,
-          true,
-          300
+          true
         );
       } else {
-        translatedItems = await this.$playback.translateItemsForPlayback(
-          item,
-          false,
-          300
-        );
+        translatedItems = await this.$playback.translateItemsForPlayback(item);
       }
 
       translatedItems.shift();
@@ -368,15 +363,10 @@ export const actions: ActionTree<PlaybackManagerState, RootState> = {
       if (startShuffled) {
         translatedItems = await this.$playback.translateItemsForPlayback(
           item,
-          true,
-          300
+          true
         );
       } else {
-        translatedItems = await this.$playback.translateItemsForPlayback(
-          item,
-          false,
-          300
-        );
+        translatedItems = await this.$playback.translateItemsForPlayback(item);
       }
 
       commit('SET_QUEUE', { queue: translatedItems });
