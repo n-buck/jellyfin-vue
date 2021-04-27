@@ -302,21 +302,6 @@ export const actions: ActionTree<PlaybackManagerState, RootState> = {
       commit('STOP_PLAYBACK');
     }
 
-    let translatedItems;
-
-    if (startShuffled) {
-      translatedItems = await this.$playback.translateItemsForPlayback(
-        item,
-        true
-      );
-    } else {
-      translatedItems = await this.$playback.translateItemsForPlayback(item);
-    }
-
-    commit('SET_QUEUE', { queue: translatedItems });
-    commit('SET_CURRENT_ITEM_INDEX', { currentItemIndex: startFromIndex });
-    commit('SET_CURRENT_TIME', { time: startFromTime });
-
     let opts;
 
     if (!startShuffled && initiator) {
@@ -329,7 +314,76 @@ export const actions: ActionTree<PlaybackManagerState, RootState> = {
       opts = { initMode: InitMode.Unknown };
     }
 
-    commit('START_PLAYBACK', opts);
+    let translatedItems;
+    let firstItem;
+    const timeStart = window.performance.now();
+
+    if (startFromIndex === 0) {
+      if (startShuffled) {
+        firstItem = await this.$playback.translateItemsForPlayback(
+          item,
+          true,
+          1
+        );
+      } else {
+        firstItem = await this.$playback.translateItemsForPlayback(
+          item,
+          false,
+          1
+        );
+      }
+
+      commit('SET_QUEUE', { queue: firstItem });
+      commit('SET_CURRENT_ITEM_INDEX', { currentItemIndex: startFromIndex });
+      commit('SET_CURRENT_TIME', { time: startFromTime });
+      commit('START_PLAYBACK', opts);
+
+      const timeStart2 = window.performance.now();
+
+      console.log('Playback started at: ', timeStart2 - timeStart);
+
+      if (startShuffled) {
+        translatedItems = await this.$playback.translateItemsForPlayback(
+          item,
+          true,
+          300
+        );
+      } else {
+        translatedItems = await this.$playback.translateItemsForPlayback(
+          item,
+          false,
+          300
+        );
+      }
+
+      translatedItems.shift();
+      translatedItems.unshift(...firstItem);
+      commit('SET_QUEUE', { queue: translatedItems });
+
+      const timeStart3 = window.performance.now();
+
+      console.log('Queue fully populated at: ', timeStart3 - timeStart2);
+      console.log('Full time: ', timeStart3 - timeStart);
+    } else {
+      if (startShuffled) {
+        translatedItems = await this.$playback.translateItemsForPlayback(
+          item,
+          true,
+          300
+        );
+      } else {
+        translatedItems = await this.$playback.translateItemsForPlayback(
+          item,
+          false,
+          300
+        );
+      }
+
+      commit('SET_QUEUE', { queue: translatedItems });
+      commit('SET_CURRENT_ITEM_INDEX', { currentItemIndex: startFromIndex });
+      commit('SET_CURRENT_TIME', { time: startFromTime });
+      commit('START_PLAYBACK', opts);
+    }
   },
   async playNext({ commit, state }, { item }: { item: BaseItemDto }) {
     const queue = Array.from(state.queue);

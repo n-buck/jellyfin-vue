@@ -9,7 +9,8 @@ import { Plugin } from '@nuxt/types/app';
 type PlaybackType = {
   translateItemsForPlayback: (
     item: BaseItemDto,
-    shuffle?: boolean
+    shuffle?: boolean,
+    limit?: number
   ) => Promise<string[]>;
 };
 
@@ -43,13 +44,17 @@ const playbackPlugin: Plugin = ({ $auth, $items, $tvShows, store }, inject) => {
      *
      * @param {BaseItemDto} item - Array of items to translate for playback
      * @param {boolean} shuffle - Request the items in random order
+     * @param {number|null} limit - Number of items to fetch
      * @returns {BaseItemDto[]} A set of playable items
      */
     translateItemsForPlayback: async (
       item: BaseItemDto,
-      shuffle = false
+      shuffle = false,
+      limit?: number
     ): Promise<string[]> => {
       console.time('translateItemsForPlayback');
+
+      const fieldLimit = { limit };
 
       if (!item) {
         throw new TypeError('item must be defined');
@@ -63,15 +68,15 @@ const playbackPlugin: Plugin = ({ $auth, $items, $tvShows, store }, inject) => {
         responseItems =
           (await $items.getItems({
             ids: [item.ChannelId],
-            limit: 300,
-            sortBy: shuffle ? 'Random' : 'SortName'
+            sortBy: shuffle ? 'Random' : 'SortName',
+            ...fieldLimit
           })) || [];
       } else if (item.Type === 'Playlist') {
         responseItems =
           (await $items.getItems({
             parentId: item.Id,
-            limit: 300,
-            sortBy: shuffle ? 'Random' : undefined
+            sortBy: shuffle ? 'Random' : undefined,
+            ...fieldLimit
           })) || [];
       } else if (item.Type === 'MusicArtist' && item.Id) {
         responseItems =
@@ -80,8 +85,8 @@ const playbackPlugin: Plugin = ({ $auth, $items, $tvShows, store }, inject) => {
             filters: [ItemFilter.IsNotFolder],
             recursive: true,
             mediaTypes: ['Audio'],
-            limit: 300,
-            sortBy: shuffle ? 'Random' : 'SortName'
+            sortBy: shuffle ? 'Random' : 'SortName',
+            ...fieldLimit
           })) || [];
       } else if (item.Type === 'MusicGenre' && item.Id) {
         responseItems =
@@ -90,8 +95,8 @@ const playbackPlugin: Plugin = ({ $auth, $items, $tvShows, store }, inject) => {
             filters: [ItemFilter.IsNotFolder],
             recursive: true,
             mediaTypes: ['Audio'],
-            limit: 300,
-            sortBy: shuffle ? 'Random' : 'SortName'
+            sortBy: shuffle ? 'Random' : 'SortName',
+            ...fieldLimit
           })) || [];
       } else if (item.IsFolder) {
         responseItems =
@@ -105,7 +110,7 @@ const playbackPlugin: Plugin = ({ $auth, $items, $tvShows, store }, inject) => {
               ? 'Random'
               : 'SortName',
             mediaTypes: ['Audio', 'Video'],
-            limit: 300
+            ...fieldLimit
           })) || [];
       } else if (item.Type === 'Episode') {
         if (
@@ -119,7 +124,7 @@ const playbackPlugin: Plugin = ({ $auth, $items, $tvShows, store }, inject) => {
               isMissing: false,
               fields: [ItemFields.Chapters, ItemFields.PrimaryImageAspectRatio],
               startItemId: item.Id,
-              limit: 300
+              ...fieldLimit
             })) || [];
         } else {
           await store.dispatch('items/addItems', { items: [item] });
