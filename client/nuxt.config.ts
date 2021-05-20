@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { NuxtRouteConfig } from '@nuxt/types/config/router';
-import type { NuxtConfig } from '@nuxt/types';
 import simpleIcons from 'simple-icons';
+import type { NuxtConfig } from '@nuxt/types';
 
 const config: NuxtConfig = {
   /*
